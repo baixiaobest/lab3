@@ -1409,7 +1409,7 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 	uint32_t entry_ino = 0;
 
 	/* EXERCISE: Your code here. */
-    if (dentry->d_name.name.len>OSPFS_MAXNAMELEN || strlen(symname)>OSPFS_MAXSYMLINKLEN) {
+    if (dentry->d_name.len>OSPFS_MAXNAMELEN || strlen(symname)>OSPFS_MAXSYMLINKLEN) {
         return -ENAMETOOLONG;
     }
     if (find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len)!=NULL) {
@@ -1437,7 +1437,7 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
     memcpy(symlink_entry->od_name, dentry->d_name.name, dentry->d_name.len);
     symlink_entry->od_name[dentry->d_name.len] = 0;
     //link symlink inode to source file
-    current_symlink_inode->size = strlen(symname);
+    current_symlink_inode->oi_size = strlen(symname);
     current_symlink_inode->oi_ftype = OSPFS_FTYPE_SYMLINK;
     current_symlink_inode->oi_nlink = 1;
     memcpy(current_symlink_inode->oi_symlink, symname, strlen(symname)+1);
