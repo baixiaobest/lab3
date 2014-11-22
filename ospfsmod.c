@@ -1366,7 +1366,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
     for (; i<OSPFS_NDIRECT; i++) {
         current_inode->oi_direct[i] = 0;
     }
-
+    entry_ino = current_inode_num;
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
 	   getting here. */
@@ -1442,7 +1442,7 @@ ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
     current_symlink_inode->oi_nlink = 1;
     memcpy(current_symlink_inode->oi_symlink, symname, strlen(symname)+1);
     
-    
+    entry_ino = current_symlink_inode_num;
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
 	   getting here. */
