@@ -1354,8 +1354,8 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
     //initialize directory entry
     //add inode num and file name to entry
     newFileEntry->od_ino = current_inode_num;
-    memcpy(newFileEntry->name, dentry->d_name.name, dentry->d_name.len);
-    newFileEntry->name[dentry->d_name.len] = 0;
+    memcpy(newFileEntry->od_name, dentry->d_name.name, dentry->d_name.len);
+    newFileEntry->od_name[dentry->d_name.len] = 0;
     current_inode->oi_size = 0;
     current_inode->oi_ftype = OSPFS_FTYPE_REG;
     current_inode->oi_nlink = 1;
