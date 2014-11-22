@@ -864,6 +864,9 @@ remove_block(ospfs_inode_t *oi)
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 
 	/* EXERCISE: Your code here */
+    if (n--==0) {
+        return -EIO;
+    }
     int32_t indir2Index = indir2_index(n); // 0 for indirect^2, -1 otherwise
     int32_t indirIndex = indir_index(n); //-1 for direct, 0 indirect, otherwise index of indirect in indirect^2
     int32_t directIndex = direct_index(n); // direct index for direct, indirect and indirect^2
@@ -906,6 +909,7 @@ remove_block(ospfs_inode_t *oi)
             oi->oi_indirect2 = 0;
         }
     }
+    oi->oi_size -= OSPFS_BLKSIZE;
     return 0;
 }
 
