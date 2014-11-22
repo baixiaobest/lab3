@@ -1065,9 +1065,9 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 		// Use variable 'n' to track number of bytes moved.
 		/* EXERCISE: Your code here */
         n = OSPFS_BLKSIZE - *f_pos%OSPFS_BLKSIZE;
-        n = count-amount <= n ? count-amount  //when data doesn't fit the whole block
+        n = count-amount <= n ? count-amount : n;  //when data doesn't fit the whole block
         //copy a chunk of data
-        reval = copy_to_user(buffer, data+*f_pos%OSPFS_BLKSIZE, n);
+        retval = copy_to_user(buffer, data+*f_pos%OSPFS_BLKSIZE, n);
         if (retval != 0) {
             retval = -EIO;
             goto done;
