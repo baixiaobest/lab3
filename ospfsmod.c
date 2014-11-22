@@ -616,6 +616,17 @@ static void
 free_block(uint32_t blockno)
 {
 	/* EXERCISE: Your code here */
+    if (blockno < ospfs_super->os_firstinob) { // cannot free bit map
+        return;
+    }
+    uint32_t bit_map_blockno = blockno/OSPFS_BLKBITSIZE + OSPFS_FREEMAP_BLK;
+    int i = blockno%OSPFS_BLKBITSIZE;
+    if (bit_map_blockno >= ospfs_super->os_firstinob) {  //impossible block number
+        return;
+    }
+    void* vector = ospfs_block(bit_map_blockno);
+    bitvector_set(vector, i);
+    return;
 }
 
 
