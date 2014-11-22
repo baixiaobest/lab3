@@ -1223,6 +1223,19 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	// 2. If there's no empty entries, add a block to the directory.
 	//    Use ERR_PTR if this fails; otherwise, clear out all the directory
 	//    entries and return one of them.
+    uint32_t offset = 0;
+    for (; offset < dir_oi->oi_size; offset += OSPFS_DIRENTRY_SIZE) {
+        ospfs_direntry_t* entry = (ospfs_direntry_t*) ospfs_inode_data(dir_oi, offset);
+        if (entry->od_ino==0) {
+            return entry;
+        }
+    }
+    int retval = add_block(dir_oi);
+    if (retval != 0) {
+        return ERR_PTR(retval);
+    }else
+        return (ospfs_direntry_t*) ospfs_inode_data(dir_oi, offset);
+    
 
 	/* EXERCISE: Your code here. */
 	return ERR_PTR(-EINVAL); // Replace this line
