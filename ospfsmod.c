@@ -1327,7 +1327,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	uint32_t entry_ino = 0;
 	/* EXERCISE: Your code here. */
 	//check name
-    if (dentry->od_name.len>OSPFS_MAXNAMELEN) {
+    if (dentry->d_name.len>OSPFS_MAXNAMELEN) {
         return -ENAMETOOLONG;
     }
     //check uniqueness
@@ -1337,7 +1337,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
     //create new file entry
     ospfs_direntry_t* newFileEntry = create_blank_direntry(dir_oi);
     if (IS_ERR(newFileEntry)) {
-        return PTR_ERR(newDirEntry);
+        return PTR_ERR(newFileEntry);
     }
     //find inode and put it into the entry
     int current_inode_num = 2;
