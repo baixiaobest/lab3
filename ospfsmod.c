@@ -443,6 +443,7 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 			f_pos++;
 	}
 
+    int entry_off; //offset from directory block by bytes
 	// actual entries
 	while (r == 0 && ok_so_far >= 0 && f_pos >= 2) {
 		ospfs_direntry_t *od;
@@ -452,8 +453,10 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		 * the loop.  For now we do this all the time.
 		 *
 		 * EXERCISE: Your code here */
-		r = 1;		/* Fix me! */
-		break;		/* Fix me! */
+        if ((entry_off=(f_pos-2)*OSPFS_DIRENTRY_SIZE)>=dir_oi->oi_size) {
+            r = 1;
+            break;
+        }
 
 		/* Get a pointer to the next entry (od) in the directory.
 		 * The file system interprets the contents of a
@@ -476,6 +479,29 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		 */
 
 		/* EXERCISE: Your code here */
+        
+        od = (ospfs_direntry_t*) ospfs_inode_data(dir_oi, entry_off); //get the entry data and cast to dir entry
+        entry_oi = ospfs_inode(od->od_ino); //get the entry file's inode
+        switch (entry_oi->oi_ftype) {
+            case OSPFS_FTYPE_REG:
+                //                          name of entry file                    dir entry inode num
+                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->i_no, DT_REG);
+                break;
+            case OSPFS_FTYPE_DIR:
+                if (od->od_ino==0) //ignore blank dir entry
+                    break;
+                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->i_no, DT_DIR);
+                break;
+            case OSPFS_FTYPE_SYMLINK:
+                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->i_no, DT_LNK);
+                break;
+            default:
+                return -EINVAL;
+        }
+        if (ok_so_far<0) { //end of directory
+            break;
+        }
+        f_pos++;
 	}
 
 	// Save the file position and return!
