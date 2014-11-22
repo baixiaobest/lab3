@@ -1362,7 +1362,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
     current_inode->oi_mode = mode;
     current_inode->oi_indirect = 0;
     current_inode->oi_indirect2 = 0;
-    int i=0
+    int i=0;
     for (; i<OSPFS_NDIRECT; i++) {
         current_inode->oi_direct[i] = 0;
     }
