@@ -525,28 +525,33 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 static int
 ospfs_unlink(struct inode *dirino, struct dentry *dentry)
 {
-	ospfs_inode_t *oi = ospfs_inode(dentry->d_inode->i_ino);
-	ospfs_inode_t *dir_oi = ospfs_inode(dentry->d_parent->d_inode->i_ino);
+	ospfs_inode_t *oi = ospfs_inode(dentry->d_inode->i_ino);  //entry's inode
+	ospfs_inode_t *dir_oi = ospfs_inode(dentry->d_parent->d_inode->i_ino); //entry's directory's inode
 	int entry_off;
-	ospfs_direntry_t *od;
+	ospfs_direntry_t *od;  //entry data
 
 	od = NULL; // silence compiler warning; entry_off indicates when !od
 	for (entry_off = 0; entry_off < dir_oi->oi_size;
 	     entry_off += OSPFS_DIRENTRY_SIZE) {
-		od = ospfs_inode_data(dir_oi, entry_off);
+		od = ospfs_inode_data(dir_oi, entry_off);  //goes through every directory entry data
 		if (od->od_ino > 0
 		    && strlen(od->od_name) == dentry->d_name.len
-		    && memcmp(od->od_name, dentry->d_name.name, dentry->d_name.len) == 0)
+		    && memcmp(od->od_name, dentry->d_name.name, dentry->d_name.len) == 0) //get the desired entry
 			break;
 	}
 
-	if (entry_off == dir_oi->oi_size) {
+	if (entry_off == dir_oi->oi_size) {  //cannot find entry name corresponds to request entry
 		printk("<1>ospfs_unlink should not fail!\n");
 		return -ENOENT;
 	}
 
-	od->od_ino = 0;
-	oi->oi_nlink--;
+	od->od_ino = 0;  //remove the entry
+	oi->oi_nlink--;  //decrement link count of file entry points to
+    //if file has link count of zero, free the block, set it's inode size to zero, free the bit map. Except Symlink
+    //can be done with just change_size(), which automatically set bit map and free inode
+    if (oi->oi_nlink==0 && oi->oi_ftype != OSPFS_FTYPE_SYMLINK) {
+        change_size(oi, 0);
+    }
 	return 0;
 }
 
