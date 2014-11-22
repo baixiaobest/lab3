@@ -894,7 +894,7 @@ remove_block(ospfs_inode_t *oi)
         uint32_t* double_indir_block_ptr = (uint32_t*) ospfs_block(oi->oi_indirect2);
         uint32_t* indir_block_ptr = (uint32_t*) ospfs_block(double_indir_block_ptr[indirIndex]);
         free_block(indir_block_ptr[directIndex]);
-        indir_block_ptr[direct_index] = 0;
+        indir_block_ptr[directIndex] = 0;
         //remove the whole indirect block
         if (direct_index==0) {
             free_block(double_indir_block_ptr[indirIndex]);
