@@ -959,6 +959,7 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
         r = add_block(oi);
         if (r == -ENOSPC) {
+            //resize the file
             while (ospfs_size2nblocks(oi->oi_size > old_size)) {
                 remove_block(oi);
             }
@@ -1043,7 +1044,7 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 	// Make sure we don't read past the end of the file!
 	// Change 'count' so we never read past the end of the file.
 	/* EXERCISE: Your code here */
-
+    count = *f_pos+count > oi->oi_size ? oi->oi_size-*f_pos : count;
 	// Copy the data to user block by block
 	while (amount < count && retval >= 0) {
 		uint32_t blockno = ospfs_inode_blockno(oi, *f_pos);
@@ -1063,9 +1064,14 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 		// into user space.
 		// Use variable 'n' to track number of bytes moved.
 		/* EXERCISE: Your code here */
-		retval = -EIO; // Replace these lines
-		goto done;
-
+        n = OSPFS_BLKSIZE - *f_pos%OSPFS_BLKSIZE;
+        n = count-amount <= n ? count-amount  //when data doesn't fit the whole block
+        //copy a chunk of data
+        reval = copy_to_user(buffer, data+*f_pos%OSPFS_BLKSIZE, n);
+        if (retval != 0) {
+            retval = -EIO;
+            goto done;
+        }
 		buffer += n;
 		amount += n;
 		*f_pos += n;
