@@ -485,15 +485,15 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
         switch (entry_oi->oi_ftype) {
             case OSPFS_FTYPE_REG:
                 //                          name of entry file                    dir entry inode num
-                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->i_no, DT_REG);
+                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, DT_REG);
                 break;
             case OSPFS_FTYPE_DIR:
                 if (od->od_ino==0) //ignore blank dir entry
                     break;
-                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->i_no, DT_DIR);
+                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, DT_DIR);
                 break;
             case OSPFS_FTYPE_SYMLINK:
-                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->i_no, DT_LNK);
+                ok_so_far = filldir(dirent, od->od_name, strlen(od->od_name), f_pos, od->od_ino, DT_LNK);
                 break;
             default:
                 return -EINVAL;
