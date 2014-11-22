@@ -585,7 +585,7 @@ allocate_block(void)
 {
 	/* EXERCISE: Your code here */
     //loop through all bit map block from OSPFS_FREEMAP_BLK to First inode block
-    uint32_t = bit_map_blockno = OSPFS_FREEMAP_BLK;
+    uint32_t bit_map_blockno = OSPFS_FREEMAP_BLK;
     for (; bit_map_blockno < ospfs_super->os_firstinob; bit_map_blockno++) {
         //search through all the bits in a block
         void* vector = ospfs_block(bit_map_blockno);
