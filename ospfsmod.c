@@ -584,6 +584,19 @@ static uint32_t
 allocate_block(void)
 {
 	/* EXERCISE: Your code here */
+    //loop through all bit map block from OSPFS_FREEMAP_BLK to First inode block
+    uint32_t = bit_map_blockno = OSPFS_FREEMAP_BLK;
+    for (; bit_map_blockno < ospfs_super->os_firstinob; bit_map_blockno++) {
+        //search through all the bits in a block
+        void* vector = ospfs_block(bit_map_blockno);
+        int i=0;
+        for (; i<OSPFS_BLKBITSIZE; i++) {
+            if (bitvector_test(vector, i)==1) {
+                bitvector_clear(vector, i); //block is now in used
+                return (bit_map_blockno-OSPFS_FREEMAP_BLK)*OSPFS_BLKBITSIZE + i; //don't forget the offset of bit_map_blockno >U<
+            }
+        }
+    }
 	return 0;
 }
 
