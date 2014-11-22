@@ -864,7 +864,49 @@ remove_block(ospfs_inode_t *oi)
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 
 	/* EXERCISE: Your code here */
-	return -EIO; // Replace this line
+    int32_t indir2Index = indir2_index(n); // 0 for indirect^2, -1 otherwise
+    int32_t indirIndex = indir_index(n); //-1 for direct, 0 indirect, otherwise index of indirect in indirect^2
+    int32_t directIndex = direct_index(n); // direct index for direct, indirect and indirect^2
+
+    if (indirIndex==-1) { //simply remove an entry from inode
+        if (oi->oi_direct[directIndex]==0) //somehow this might occur
+            return -EIO;
+        free_block(oi->oi_direct[directIndex]);
+        oi->oi_direct[directIndex] = 0;
+    }else if(indirIndex==0){ //remove an indirect block
+        if (oi->oi_indirect==0) { //somehow error occurs
+            return -EIO;
+        }
+        uint32_t* indir_block_ptr = (uint32_t*)ospfs_block(oi->oi_indirect); //grab that indirect block
+        free_block(indir_block_ptr[directIndex]);
+        //remove the whole indirect block
+        if (directIndex==0) {
+            free_block(oi->oi_indirect);
+            oi->oi_indirect = 0;
+        }else{
+            indir_block_ptr[directIndex] = 0;
+        }
+    }else if(indir2Index==0){
+        //weird error
+        if (oi->oi_indirect2==0) {
+            return -EIO;
+        }
+        uint32_t* double_indir_block_ptr = (uint32_t*) ospfs_block(oi->oi_indirect2);
+        uint32_t* indir_block_ptr = (uint32_t*) ospfs_block(double_indir_block_ptr[indirIndex]);
+        free_block(indir_block_ptr[directIndex]);
+        indir_block_ptr[direct_index] = 0;
+        //remove the whole indirect block
+        if (direct_index==0) {
+            free_block(double_indir_block_ptr[indirIndex]);
+            double_indir_block_ptr[indirIndex] = 0;
+        }
+        //remove the whole double indirect block
+        if (indirIndex==0) {
+            free_block(oi->oi_indirect2);
+            oi->oi_indirect2 = 0;
+        }
+    }
+    return 0;
 }
 
 
