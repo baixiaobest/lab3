@@ -765,7 +765,32 @@ add_block(ospfs_inode_t *oi)
     int32_t indirIndex = indir_index(n); //-1 for direct, 0 indirect, otherwise index of indirect in indirect^2
     int32_t directIndex = direct_index(n); // direct index for direct, indirect and indirect^2
     
-    if (indir2Index == 0){
+    if (indirIndex == -1) {
+        oi->oi_direct[directIndex] = allocate_block();
+        if (oi->oi_direct[directIndex] == 0){//fail to add block
+            return -ENOSPC;
+        }
+        clear_block(oi->oi_direct[directIndex]);
+    } else if (indirIndex == 0){
+        //allocate new indirect block for inode
+        if (directIndex == 0) {
+            oi->oi_indirect = allocate_block();
+            if (oi->oi_indirect == 0)
+                return -ENOSPC;
+            clear_block(oi->oi_indirect);
+        }
+        uint32_t* indir_block_ptr = (uint32_t*) ospfs_block(oi->oi_indirect); // grab that indir block
+        indir_block_ptr[directIndex] = allocate_block();
+        //cannot allocate a new block for file
+        if (indir_block_ptr[directIndex] == 0) {
+            if (directIndex == 0) { //free the newly createdly indirect block
+                free_block(oi->oi_indirect);
+                oi->oi_indirect = 0;
+            }
+            return -ENOSPC;
+        }
+        clear_block(indir_block_ptr[directIndex]);
+    }else if (indir2Index == 0){
         //allocate new indirect^2 block for inode
         if (indirIndex==0 && directIndex==0) {
             oi->oi_indirect2 = allocate_block();
@@ -804,31 +829,6 @@ add_block(ospfs_inode_t *oi)
             return -ENOSPC;
         }
         clear_block(indir_block_ptr[directIndex]);
-    }else if (indirIndex == 0){
-        //allocate new indirect block for inode
-        if (directIndex == 0) {
-            oi->oi_indirect = allocate_block();
-            if (oi->oi_indirect == 0)
-                return -ENOSPC;
-            clear_block(oi->oi_indirect);
-        }
-        uint32_t* indir_block_ptr = (uint32_t*) ospfs_block(oi->oi_indirect); // grab that indir block
-        indir_block_ptr[directIndex] = allocate_block();
-        //cannot allocate a new block for file
-        if (indir_block_ptr[directIndex] == 0) {
-            if (directIndex == 0) { //free the newly createdly indirect block
-                free_block(oi->oi_indirect);
-                oi->oi_indirect = 0;
-            }
-            return -ENOSPC;
-        }
-        clear_block(indir_block_ptr[directIndex]);
-    }else{
-        oi->oi_direct[directIndex] = allocate_block();
-        if (oi->oi_direct[directIndex] == 0){//fail to add block
-            return -ENOSPC;
-        }
-        clear_block(oi->oi_direct[directIndex]);
     }
     oi->oi_size += OSPFS_BLKSIZE;
 	return 0; // Replace this line
