@@ -1231,14 +1231,10 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
         }
     }
     int retval = add_block(dir_oi);
-    if (retval != 0) {
+    if (retval != 0) {     //fail to add block
         return ERR_PTR(retval);
     }else
         return (ospfs_direntry_t*) ospfs_inode_data(dir_oi, offset);
-    
-
-	/* EXERCISE: Your code here. */
-	return ERR_PTR(-EINVAL); // Replace this line
 }
 
 // ospfs_link(src_dentry, dir, dst_dentry
@@ -1273,7 +1269,26 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 static int
 ospfs_link(struct dentry *src_dentry, struct inode *dir, struct dentry *dst_dentry) {
 	/* EXERCISE: Your code here. */
-	return -EINVAL;
+    ospfs_inode_t* src_oi = ospfs_inode(src_dentry->d_inode->i_ino);
+    ospfs_inode_t* dir_oi = ospfs_inode(dir->i_ino);
+    //check for uniqueness
+    if (find_direntry(dir_oi, dst_dentry->d_name.name)!=NULL) {
+        return -EEXIST;
+    }
+    //check for name length
+    if (dentry->d_name.len > OSPFS_MAXNAMELEN) {
+        return -ENAMETOOLONG;
+    }
+    ospfs_direntry_t* newDirEntry = create_blank_direntry(dir_oi);
+    if (IS_ERR(newDirEntry)) {
+        return PTR_ERR(newDirEntry);
+    }
+    //copy name and inode num
+    memcpy(newDirEntry->od_name, dst_dentry->d_name.name, dst_dentry->d_name.len);
+    newDirEntry->od_name[dst_dentry->d_name.len] = 0;
+    newDirEntry->od_ino = src_dentry->d_inode->i_ino;
+    src_oi->oi_nlink++;
+	return 0;
 }
 
 // ospfs_create
